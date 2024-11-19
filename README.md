@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# platanus-hack-front
 
-## Getting Started
+### Pasos para ejecutar el proyecto
+```
+# Cambiar a la version de node
+nvm use 20.0
 
-First, run the development server:
+# Instalar las dependencias
+npm i
 
-```bash
+# Correr el proyecto
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+El servidor estará disponible en http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<br />
+<br />
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
+---
+<br />
+<br />
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Configuración del proyecto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### App Router
 
-## Deploy on Vercel
+El proyecto utiliza el App Router, una funcionalidad moderna de Next.js que permite trabajar con rutas definidas dentro de la carpeta app/. Esto mejora la modularidad y facilita el desarrollo con características como layouts compartidos y React Server Components.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Ejemplo de estructura de archivos:
+```
+app/
+├── layout.js        # Layout principal, compartido por todas las rutas
+├── page.js          # Página raíz ("/")
+├── about/
+│   ├── page.js      # Página "about" ("/about")
+├── contact/
+│   ├── page.js      # Página "contact" ("/contact")
+│   ├── layout.js    # Layout específico para la ruta "contact"
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Alias de importación
+
+El proyecto usa el alias @ para facilitar las importaciones desde la raíz del proyecto. Por ejemplo:
+
+```
+import Button from '@/components/Button';
+```
+
+<br />
+<br />
+
+---
+---
+
+<br />
+<br />
+
+
+
+## A modo resumen
+
+- Rutas: Agrega nuevas rutas en la carpeta app/. Usa un archivo page.js para definir el contenido de cada página.
+
+- Componentes compartidos: Ubícalos en la carpeta components/. Usa el alias @ para importarlos fácilmente.
+
+- Layouts: Si necesitas un diseño consistente entre páginas, utiliza un archivo layout.js en la ruta correspondiente.
+
+
+### Ejemplo: Añadiendo una nueva página
+
+Si quieres crear una página para /team:
+1. Crea la carpeta app/team/.
+2. Agrega un archivo page.js con el siguiente contenido:
+
+```
+export default function TeamPage() {
+
+    return (
+        <div>
+            <h1>Meet the Team!</h1>
+        </div>
+    );
+}
+```
