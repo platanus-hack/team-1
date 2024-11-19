@@ -50,6 +50,12 @@ El proyecto usa el alias @ para facilitar las importaciones desde la raíz del p
 import Button from '@/components/Button';
 ```
 
+### Variables de entorno (.env)
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
 <br />
 <br />
 
