@@ -1,15 +1,17 @@
-"use client"
-import { redirect } from 'next/navigation';
+"use client";
+import { useRouter } from 'next/navigation'; // Importa useRouter
 import { useState } from 'react';
 import { supabase } from '../../utils/supabaseClient'; // Asegúrate de tener el archivo de configuración supabaseClient.js
 
 
 export default function Login() {
+  const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,22 +24,19 @@ export default function Login() {
       });
 
       if (error) {
-        console.log(1, error);
-
-        setError("Ha ocurrido un error inesperado. Por favor, inténtalo nuevamente más tarde.");
+        if (error.code === 'invalid_credentials') {
+          setError("Usuario o contraseña incorrectos.");
+        } else {
+          setError("Credenciales incorrectas o error inesperado. Por favor, inténtalo nuevamente.");
+        }
       } else {
-        setSuccess('Logged in successfully!');
-        redirect('/home')
+        router.push('/home');
       }
-
     } catch (error) {
       setError("Ha ocurrido un error inesperado. Por favor, inténtalo nuevamente más tarde.");
-
     } finally {
       setLoading(false);
-
     }
-
   };
 
   const handleRegister = async (e) => {
@@ -51,21 +50,21 @@ export default function Login() {
       });
 
       if (error) {
-        console.log(2, error);
-        setError("Ha ocurrido un error inesperado. Por favor, inténtalo nuevamente más tarde.");
+        if (error.code === 'unexpected_failure') {
+          setError("Por favor, verifica que el correo sea válido.");
+        } else {
+          setError("Error al registrarte. Por favor, inténtalo nuevamente.");
+        }
       } else {
-        setSuccess('Logged in successfully!');
-        redirect('/home')
+        router.push('/home');
       }
-
     } catch (error) {
       setError("Ha ocurrido un error inesperado. Por favor, inténtalo nuevamente más tarde.");
-
     } finally {
       setLoading(false);
     }
-
   };
+
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
@@ -100,7 +99,7 @@ export default function Login() {
             disabled={loading}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            {loading ? 'Loading...' : 'Login'}
+            {loading ? 'Cargando...' : 'Iniciar Sesión'}
           </button>
           <button
             type="button"
@@ -108,7 +107,7 @@ export default function Login() {
             disabled={loading}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
           >
-            {loading ? 'Loading...' : 'Register'}
+            {loading ? 'Cargando...' : 'Registrarse'}
           </button>
         </div>
       </form>
