@@ -1,40 +1,102 @@
 'use client';
 
-import { Button } from "@/components/ui/button";
-import { Mic, Square, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef } from 'react';
+import { Mic, Square } from 'lucide-react';
 
 interface MicrophoneButtonProps {
   isRecording: boolean;
-  isLoading: boolean;
   onToggleRecording: () => void;
+  isLoading: boolean;
 }
 
-export function MicrophoneButton({
-  isRecording,
-  isLoading,
-  onToggleRecording,
-}: MicrophoneButtonProps) {
+export function MicrophoneButton({ isRecording, onToggleRecording, isLoading }: MicrophoneButtonProps) {
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number>();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isRecording) {
+      // Inicializar el análisis de audio
+      const initAudioAnalysis = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          audioContextRef.current = new AudioContext();
+          analyserRef.current = audioContextRef.current.createAnalyser();
+          
+          const source = audioContextRef.current.createMediaStreamSource(stream);
+          source.connect(analyserRef.current);
+          
+          analyserRef.current.fftSize = 256;
+          const bufferLength = analyserRef.current.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          const animate = () => {
+            if (!analyserRef.current || !buttonRef.current) return;
+            
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+            const scale = 1 + (average / 256) * 0.5; // Escala entre 1 y 1.5
+            
+            buttonRef.current.style.transform = `scale(${scale})`;
+            animationFrameRef.current = requestAnimationFrame(animate);
+          };
+
+          animate();
+        } catch (error) {
+          console.error('Error initializing audio analysis:', error);
+        }
+      };
+
+      initAudioAnalysis();
+    } else {
+      // Limpiar cuando se detiene la grabación
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (buttonRef.current) {
+        buttonRef.current.style.transform = 'scale(1)';
+      }
+    }
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, [isRecording]);
+
   return (
-    <Button
-      size="lg"
-      variant={isRecording ? "destructive" : "default"}
-      className={cn(
-        "w-36 h-36 rounded-full p-0 transition-all duration-300",
-        isRecording && "bg-red-50 border-red-500 text-red-500 animate-pulse",
-        !isRecording && "border-2 hover:bg-blue-50 hover:text-blue-500 hover:border-blue-500",
-        isLoading && "opacity-80"
-      )}
-      onClick={onToggleRecording}
+    <button
+      ref={buttonRef}
       disabled={isLoading}
+      className={`
+        relative w-36 h-36 
+        ${isRecording 
+          ? 'bg-white text-primary shadow-lg' 
+          : 'bg-primary text-white shadow-xl'
+        }
+        rounded-full 
+        flex items-center justify-center 
+        transition-all duration-300
+        hover:scale-110
+        disabled:opacity-50
+        z-50
+      `}
+      onClick={onToggleRecording}
     >
       {isLoading ? (
-        <Loader2 className="h-10 w-10 animate-spin" />
-      ) : isRecording ? (
-        <Square className="h-10 w-10" />
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       ) : (
-        <Mic className="h-10 w-10" />
+        isRecording ? <Square size={32} /> : <Mic size={32} />
       )}
-    </Button>
+    </button>
   );
 }

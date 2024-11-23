@@ -28,13 +28,14 @@ interface BitacoraEntry {
 interface Entry extends BitacoraEntry {}
 
 export default function HomePage() {
-  const { isRecording, startRecording, stopRecording, sendAudioToBackend, audioUrl } = useAudioRecorder();
+  const { isRecording, startRecording, stopRecording, sendAudioToBackend, audioUrl, volume } = useAudioRecorder();
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
   const [isRecordingLoading, setIsRecordingLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [logs, setLogs] = useState([]);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -97,10 +98,9 @@ export default function HomePage() {
       } else {
         setIsRecordingLoading(true);
         await stopRecording();
+        setIsProcessing(true);
         const result = await sendAudioToBackend();
         console.log('Respuesta del servidor:', result);
-        
-        // Recargar la lista de bitácoras después de una subida exitosa
         await fetchUserLogs();
       }
     } catch (error) {
@@ -108,6 +108,7 @@ export default function HomePage() {
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsRecordingLoading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -115,11 +116,20 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
         <div className="relative space-y-8">
-          {/* Recording Background Effect */}
+          {/* Fondo expandible - Movido debajo del contenido principal */}
           <div
-            className={`fixed inset-0 z-0 bg-primary/20 backdrop-blur-sm transition-all duration-300 ${
-              isRecording ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            className={`
+              fixed inset-0 
+              bg-primary/20 
+              backdrop-blur-sm 
+              transition-all duration-700 
+              ${isRecording 
+                ? 'opacity-100 scale-100' 
+                : 'opacity-0 scale-0 rounded-full'
+              }
+              origin-center
+              z-0
+            `}
           />
 
           {/* Main Content */}
@@ -130,43 +140,87 @@ export default function HomePage() {
               </Alert>
             )}
 
-            <WeekdaySelector
-              selectedDay={selectedDay}
-              completedDays={logs.map((log: any) => new Date(log.created_at).getDay())}
-              onDayChange={handleDayChange}
-            />
-
-            <div className="flex flex-col items-center space-y-4">
-              <MicrophoneButton
-                isRecording={isRecording}
-                onToggleRecording={handleToggleRecording}
-                isLoading={isRecordingLoading}
+            <div className={`transition-opacity duration-500 ${isRecording ? 'opacity-0' : 'opacity-100'}`}>
+              <WeekdaySelector
+                selectedDay={selectedDay}
+                completedDays={logs.map((log: any) => new Date(log.created_at).getDay())}
+                onDayChange={handleDayChange}
               />
-              
-              {error && (
-                <Alert variant="destructive" className="max-w-md">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
             </div>
 
-            {audioUrl && (
-              <div className="max-w-2xl mx-auto">
-                <AudioPreview audioUrl={audioUrl} />
-              </div>
-            )}
-
-            {isDataLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <EntriesList
-                logs={logs}
-                selectedDay={selectedDay}
-                onEntryClick={setSelectedEntry}
+            {/* Contenedor del micrófono con animación de volumen más dramática */}
+            <div className="flex flex-col items-center justify-center relative h-[400px] w-full">
+              {/* Círculo base siempre visible */}
+              <div 
+                className="absolute rounded-full bg-primary/5"
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  transform: 'translate(-50%, -50%)',
+                  left: '50%',
+                  top: '50%',
+                }}
               />
-            )}
+              
+              {/* Círculos de animación */}
+              {[...Array(3)].map((_, i) => (
+                <div 
+                  key={i}
+                  className="absolute rounded-full bg-primary/10 transition-all duration-75"
+                  style={{
+                    width: `${(volume * 800 + 120) * (1 + i * 0.2)}px`,
+                    height: `${(volume * 800 + 120) * (1 + i * 0.2)}px`,
+                    transform: 'translate(-50%, -50%)',
+                    left: '50%',
+                    top: '50%',
+                    opacity: 0.8 - (i * 0.2),
+                    animation: isRecording ? 'pulse 2s infinite' : 'none',
+                    animationDelay: `${i * 0.2}s`
+                  }}
+                />
+              ))}
+
+              {/* Círculo principal que responde al volumen */}
+              <div 
+                className="absolute rounded-full bg-primary/20 transition-all duration-75"
+                style={{
+                  width: `${volume * 600 + 140}px`,
+                  height: `${volume * 600 + 140}px`,
+                  transform: 'translate(-50%, -50%)',
+                  left: '50%',
+                  top: '50%',
+                  boxShadow: `0 0 ${volume * 100}px ${volume * 40}px rgba(var(--primary), 0.3)`,
+                }}
+              />
+
+              <div className="relative z-20">
+                <MicrophoneButton
+                  isRecording={isRecording}
+                  onToggleRecording={handleToggleRecording}
+                  isLoading={isRecordingLoading || isProcessing}
+                />
+              </div>
+            </div>
+
+            <div className={`transition-opacity duration-500 ${isRecording ? 'opacity-0' : 'opacity-100'}`}>
+              {audioUrl && (
+                <div className="max-w-2xl mx-auto">
+                  <AudioPreview audioUrl={audioUrl} />
+                </div>
+              )}
+
+              {isDataLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <EntriesList
+                  logs={logs}
+                  selectedDay={selectedDay}
+                  onEntryClick={setSelectedEntry}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -175,6 +229,33 @@ export default function HomePage() {
         entry={selectedEntry}
         onClose={() => setSelectedEntry(null)}
       />
+
+      {/* Indicador de procesamiento */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-foreground">Procesando audio...</p>
+          </div>
+        </div>
+      )}
+
+      <style jsx global>{`
+        @keyframes pulse {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.5;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 0.3;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.5;
+          }
+        }
+      `}</style>
     </div>
   );
 }

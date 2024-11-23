@@ -11,9 +11,15 @@ interface WeekdaySelectorProps {
   onDayChange: (day: number) => void;
 }
 
-const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 export function WeekdaySelector({ selectedDay, completedDays, onDayChange }: WeekdaySelectorProps) {
+  const uiToJsDay = (uiDay: number) => (uiDay + 1) % 7;
+  const jsTouiDay = (jsDay: number) => (jsDay + 6) % 7;
+
+  const uiCompletedDays = completedDays.map(jsDay => jsTouiDay(jsDay));
+  const uiSelectedDay = jsTouiDay(selectedDay);
+
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
@@ -23,9 +29,9 @@ export function WeekdaySelector({ selectedDay, completedDays, onDayChange }: Wee
         </h2>
       </div>
       <div className="grid grid-cols-7 gap-2">
-        {WEEKDAYS.map((day, index) => {
-          const isCompleted = completedDays.includes(index);
-          const isSelected = selectedDay === index;
+        {WEEKDAYS.map((day, uiIndex) => {
+          const isCompleted = uiCompletedDays.includes(uiIndex);
+          const isSelected = uiSelectedDay === uiIndex;
 
           return (
             <Button
@@ -35,7 +41,7 @@ export function WeekdaySelector({ selectedDay, completedDays, onDayChange }: Wee
                 "h-12 relative",
                 isCompleted && !isSelected && "border-primary/50"
               )}
-              onClick={() => onDayChange(index)}
+              onClick={() => onDayChange(uiToJsDay(uiIndex))}
             >
               <span className="text-sm">{day}</span>
               {isCompleted && !isSelected && (

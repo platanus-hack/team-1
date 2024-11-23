@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 interface AudioRecorderState {
   isRecording: boolean;
   audioUrl: string | null;
   mediaRecorder: MediaRecorder | null;
   audioChunks: Blob[];
+  volume: number;
 }
 
 export function useAudioRecorder() {
@@ -15,6 +16,12 @@ export function useAudioRecorder() {
     audioUrl: null,
     mediaRecorder: null,
     audioChunks: [],
+    volume: 0,
+  });
+
+  const recordingRef = useRef({
+    isRecording: false,
+    animationFrame: 0
   });
 
   const startRecording = useCallback(async () => {
@@ -23,6 +30,30 @@ export function useAudioRecorder() {
       const mediaRecorder = new MediaRecorder(stream);
       const audioChunks: Blob[] = [];
 
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.4;
+      source.connect(analyser);
+
+      const updateVolume = () => {
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        
+        const values = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        const normalizedVolume = Math.pow(values / 128, 1.5) * 2;
+        
+        setState(prev => ({
+          ...prev,
+          volume: Math.min(normalizedVolume, 1)
+        }));
+
+        if (recordingRef.current.isRecording) {
+          recordingRef.current.animationFrame = requestAnimationFrame(updateVolume);
+        }
+      };
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunks.push(event.data);
@@ -30,6 +61,8 @@ export function useAudioRecorder() {
       };
 
       mediaRecorder.start();
+      recordingRef.current.isRecording = true;
+      updateVolume();
 
       setState((prev) => ({
         ...prev,
@@ -50,6 +83,11 @@ export function useAudioRecorder() {
   }, []);
 
   const stopRecording = useCallback(async () => {
+    recordingRef.current.isRecording = false;
+    if (recordingRef.current.animationFrame) {
+      cancelAnimationFrame(recordingRef.current.animationFrame);
+    }
+
     return new Promise<void>((resolve) => {
       if (!state.mediaRecorder) {
         resolve();
@@ -60,7 +98,6 @@ export function useAudioRecorder() {
         const audioBlob = new Blob(state.audioChunks, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
 
-        // Stop all tracks in the stream
         state.mediaRecorder?.stream.getTracks().forEach((track) => track.stop());
 
         setState((prev) => ({
@@ -68,6 +105,7 @@ export function useAudioRecorder() {
           isRecording: false,
           audioUrl,
           mediaRecorder: null,
+          volume: 0,
         }));
 
         resolve();
@@ -125,6 +163,7 @@ export function useAudioRecorder() {
   return {
     isRecording: state.isRecording,
     audioUrl: state.audioUrl,
+    volume: state.volume,
     startRecording,
     stopRecording,
     sendAudioToBackend,
