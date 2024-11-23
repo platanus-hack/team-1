@@ -52,11 +52,22 @@ export default function Login() {
       if (error) {
         if (error.code === 'unexpected_failure') {
           setError("Por favor, verifica que el correo sea válido.");
+
+        } else if (error.message === 'User already registered') {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: process.env.NEXT_PUBLIC_UPDATE_PASSWORD_REDIRECT, // Cambia esto al URL de tu página de restablecimiento
+          });
+
+          if (error) {
+            setError("Ha ocurrido un error inesperado. Por favor, inténtalo nuevamente más tarde.");
+          }
+          
+          setError("El usuario ya existe. Se ha enviado un correo para restablecer la contraseña.");
         } else {
           setError("Error al registrarte. Por favor, inténtalo nuevamente.");
         }
       } else {
-        router.push('/home');
+        router.push('/home'); // Descomenta si deseas redirigir al usuario después del registro
       }
     } catch (error) {
       setError("Ha ocurrido un error inesperado. Por favor, inténtalo nuevamente más tarde.");
@@ -112,7 +123,6 @@ export default function Login() {
         </div>
       </form>
       {error && <p className="text-red-500 mt-4">{error}</p>}
-      {success && <p className="text-green-500 mt-4">{success}</p>}
     </div>
   );
 }
