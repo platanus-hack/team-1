@@ -71,11 +71,12 @@ export default function HomePage() {
       } else {
         setIsRecordingLoading(true);
         await stopRecording();
-        await sendAudioToBackend();
+        const result = await sendAudioToBackend();
+        console.log('Respuesta del servidor:', result);
       }
     } catch (error) {
+      console.error('Error detallado:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
-      console.error('Recording error:', error);
     } finally {
       setIsRecordingLoading(false);
     }

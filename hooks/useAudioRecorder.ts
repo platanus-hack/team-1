@@ -81,42 +81,31 @@ export function useAudioRecorder() {
     if (!state.audioUrl) return;
 
     try {
-      // Obtener el user_id del localStorage de Supabase
-      const supabaseUserId = localStorage.getItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF + '-auth-token');
-      let userId;
-      
-      if (supabaseUserId) {
-        const userData = JSON.parse(supabaseUserId);
-        userId = userData.user.id;
-        console.log('User ID encontrado:', userId); // Debug log
-      }
-
-      if (!userId) {
-        throw new Error('Usuario no autenticado');
-      }
+      const user = localStorage.getItem('user_data')  
+      const userId = user ? JSON.parse(user).id : null
 
       const response = await fetch(state.audioUrl);
       const audioBlob = await response.blob();
 
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
-      formData.append('user_id', userId.toString()); // Aseguramos que sea string
-
-      console.log('FormData contenido:', {
-        user_id: userId,
-        audio: audioBlob
-      }); // Debug log
+      formData.append('user_id', userId.toString());
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+      if (!API_BASE_URL) {
+        throw new Error('URL del API no configurada');
+      }
+
+      console.log('Enviando petición a:', `${API_BASE_URL}/api/bitacora`);
+      
       const uploadResponse = await fetch(`${API_BASE_URL}/api/bitacora`, {
         method: 'POST',
         body: formData,
       });
 
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.text();
-        console.error('Error response:', errorData);
-        throw new Error('Error al procesar el audio');
+        const errorData = await uploadResponse.json();
+        throw new Error(`Error del servidor: ${errorData.error || uploadResponse.statusText}`);
       }
 
       // Clean up the audio URL
@@ -125,6 +114,10 @@ export function useAudioRecorder() {
 
       return await uploadResponse.json();
     } catch (error) {
+      console.error('Error detallado:', error);
+      if (error instanceof Error) {
+        throw new Error(`Error al enviar el audio al servidor: ${error.message}`);
+      }
       throw new Error('Error al enviar el audio al servidor');
     }
   }, [state.audioUrl]);
