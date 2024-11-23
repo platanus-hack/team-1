@@ -9,6 +9,9 @@ import { WeekdaySelector } from '@/components/WeekdaySelector';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 // Definir la interfaz para una entrada de bitácora
 interface BitacoraEntry {
@@ -36,6 +39,12 @@ export default function HomePage() {
   const [logs, setLogs] = useState([]);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('notifications_enabled') === 'true';
+    }
+    return false;
+  });
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -90,6 +99,93 @@ export default function HomePage() {
     setSelectedDay(dayIndex);
   };
 
+  // Función para mostrar notificación
+  const showNotification = (title: string, body: string) => {
+    // Primero intentar la notificación nativa
+    if (Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body: body,
+          icon: '/icon.png',
+          silent: false,
+        });
+      } catch (error) {
+        console.error('Error showing native notification:', error);
+      }
+    }
+
+    // Siempre mostrar el toast como respaldo
+    toast(title, {
+      description: body,
+      duration: 8000,
+      style: {
+        backgroundColor: 'var(--primary)',
+        color: 'white',
+        fontSize: '1.2rem',
+        padding: '1rem',
+      },
+    });
+  };
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    console.log('Toggle clicked, enabled:', enabled);
+    
+    if (enabled) {
+      try {
+        // Verificar si las notificaciones están soportadas
+        if (!("Notification" in window)) {
+          toast.error('Tu navegador no soporta notificaciones');
+          return;
+        }
+
+        console.log('Requesting notification permission...');
+        
+        // Si ya tenemos permiso, no necesitamos pedirlo de nuevo
+        if (Notification.permission === 'granted') {
+          setNotificationsEnabled(true);
+          localStorage.setItem('notifications_enabled', 'true');
+          toast.success('Notificaciones activadas');
+          return;
+        }
+        
+        // Si los permisos están denegados, no podemos pedirlos de nuevo
+        if (Notification.permission === 'denied') {
+          toast.error('Las notificaciones están bloqueadas. Por favor, habilítalas en la configuración de tu navegador.');
+          return;
+        }
+
+        // Pedir permisos
+        const permission = await Notification.requestPermission();
+        console.log('Permission result:', permission);
+        
+        if (permission === 'granted') {
+          setNotificationsEnabled(true);
+          localStorage.setItem('notifications_enabled', 'true');
+          toast.success('Notificaciones activadas');
+          
+          // Enviar notificación de prueba
+          new Notification('¡Notificaciones activadas!', {
+            body: 'Las notificaciones están funcionando correctamente',
+            icon: '/icon.png',
+          });
+        } else {
+          setNotificationsEnabled(false);
+          localStorage.setItem('notifications_enabled', 'false');
+          toast.error('Necesitamos tu permiso para mostrar notificaciones');
+        }
+      } catch (error) {
+        console.error('Error requesting permission:', error);
+        toast.error('Error al solicitar permisos de notificación');
+        setNotificationsEnabled(false);
+        localStorage.setItem('notifications_enabled', 'false');
+      }
+    } else {
+      setNotificationsEnabled(false);
+      localStorage.setItem('notifications_enabled', 'false');
+      toast('Notificaciones desactivadas');
+    }
+  };
+
   const handleToggleRecording = async () => {
     setError(null);
     try {
@@ -102,6 +198,15 @@ export default function HomePage() {
         const result = await sendAudioToBackend();
         console.log('Respuesta del servidor:', result);
         await fetchUserLogs();
+
+        if (notificationsEnabled && result.follow_up_question) {
+          setTimeout(() => {
+            showNotification(
+              'Pregunta de seguimiento',
+              result.follow_up_question
+            );
+          }, 2000);
+        }
       }
     } catch (error) {
       console.error('Error detallado:', error);
@@ -112,9 +217,97 @@ export default function HomePage() {
     }
   };
 
+  // Modificar el TestNotificationButton
+  const TestNotificationButton = () => {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    return (
+      <button
+        className="fixed bottom-4 right-4 bg-primary text-white px-4 py-2 rounded-md"
+        onClick={() => {
+          console.log('Test button clicked');
+          console.log('Notifications enabled:', notificationsEnabled);
+          console.log('Notification permission:', Notification.permission);
+          
+          if (notificationsEnabled && Notification.permission === 'granted') {
+            showNotification(
+              'Pregunta de seguimiento',
+              '¿Cómo te sientes después de compartir esto?'
+            );
+          } else {
+            toast.error(
+              'Las notificaciones están desactivadas o no están permitidas. ' +
+              `(Enabled: ${notificationsEnabled}, Permission: ${Notification.permission})`
+            );
+          }
+        }}
+      >
+        Test Notification
+      </button>
+    );
+  };
+
+  // Agregar este useEffect después de las declaraciones de estado
+  useEffect(() => {
+    // Verificar permisos al cargar
+    const checkNotificationPermission = async () => {
+      if (typeof Notification !== 'undefined') {
+        const permission = Notification.permission;
+        console.log('Current notification permission:', permission);
+        
+        if (permission === 'granted') {
+          setNotificationsEnabled(true);
+          localStorage.setItem('notifications_enabled', 'true');
+        } else {
+          setNotificationsEnabled(false);
+          localStorage.setItem('notifications_enabled', 'false');
+        }
+      }
+    };
+
+    checkNotificationPermission();
+  }, []);
+
+  // Agregar este componente de debug
+  const DebugButton = () => {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    return (
+      <button
+        className="fixed bottom-20 right-4 bg-gray-500 text-white px-4 py-2 rounded-md"
+        onClick={() => {
+          console.log({
+            notificationsEnabled,
+            notificationPermission: Notification.permission,
+            browserSupport: 'Notification' in window,
+          });
+          
+          toast.info(`Estado actual:
+            Activadas: ${notificationsEnabled}
+            Permiso: ${Notification.permission}
+            Soporte: ${'Notification' in window}`
+          );
+        }}
+      >
+        Debug Notifications
+      </button>
+    );
+  };
+
   return (
     <div>
       <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center space-x-3 justify-end mb-4 bg-primary/5 p-4 rounded-lg">
+          <Switch
+            id="notifications"
+            checked={notificationsEnabled}
+            onCheckedChange={handleNotificationToggle}
+          />
+          <Label htmlFor="notifications" className="font-medium">
+            Activar notificaciones
+          </Label>
+        </div>
+
         <div className="relative space-y-8">
           {/* Fondo expandible - Movido debajo del contenido principal */}
           <div
@@ -256,6 +449,8 @@ export default function HomePage() {
           }
         }
       `}</style>
+      <TestNotificationButton />
+      <DebugButton />
     </div>
   );
 }
