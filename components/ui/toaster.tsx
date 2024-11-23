@@ -10,18 +10,20 @@ export function Toaster() {
     <Sonner
       theme={theme as 'light' | 'dark' | 'system'}
       className="toaster group"
-      position="top-center"
+      position="bottom-right"
       expand={true}
       richColors
-      style={{
-        fontSize: '1.2rem',
-      }}
       toastOptions={{
+        classNames: {
+          toast: 'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
+          description: 'group-[.toast]:text-muted-foreground',
+          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
+          cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+        },
         style: {
           background: 'var(--background)',
           border: '1px solid var(--border)',
-          padding: '1rem',
-          minWidth: '400px',
+          minWidth: '300px',
         },
       }}
     />

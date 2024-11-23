@@ -2,7 +2,7 @@
 
 import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
+import { NotificationsMenu } from './NotificationsMenu';
 
 export default function Navbar() {
   const router = useRouter();
@@ -17,14 +17,16 @@ export default function Navbar() {
           Get Human Talking
         </h1>
 
-        <div
-          className="relative w-8 h-8 flex items-center justify-center cursor-pointer"
-          onClick={() => router.push('/profile')}
-        >
-          <div className="absolute inset-0 rounded-full border-2 border-black"></div>
-          <User size={20} className="relative z-10 text-black" />
+        <div className="flex items-center gap-4">
+          <NotificationsMenu />
+          <div
+            className="relative w-8 h-8 flex items-center justify-center cursor-pointer"
+            onClick={() => router.push('/profile')}
+          >
+            <div className="absolute inset-0 rounded-full border-2 border-black"></div>
+            <User size={20} className="relative z-10 text-black" />
+          </div>
         </div>
-
       </div>
     </nav>
   );
