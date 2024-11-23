@@ -10,11 +10,22 @@ import { EntryModal } from '@/components/EntryModal';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
-interface Entry {
+// Definir la interfaz para una entrada de bitácora
+interface BitacoraEntry {
+  uuid: string;
   title: string;
-  content: string;
-  emotional_status: 'good' | 'neutral' | 'bad';
+  transcription: string;
+  analysis: string;
+  emotion_state: string;
+  follow_up_question: string;
+  summary: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
+
+// Actualizar la interfaz Entry existente o reemplazarla
+interface Entry extends BitacoraEntry {}
 
 export default function HomePage() {
   const { isRecording, startRecording, stopRecording, sendAudioToBackend, audioUrl } = useAudioRecorder();
@@ -27,22 +38,37 @@ export default function HomePage() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  useEffect(() => {
-    const fetchUserLogs = async () => {
-      try {
-        setIsDataLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/logs`);
-        if (!response.ok) {
-          throw new Error(`Failed fetching user logs with status ${response.status}`);
-        }
-        const data = await response.json();
-        setLogs(data);
-      } catch (error) {
-        console.error('Failed fetchUserLogs, couldnt retrieve bitacoras: ', error);
-      } finally {
-        setIsDataLoading(false);
+  // Extraer la función de fetchUserLogs fuera del useEffect para poder reutilizarla
+  const fetchUserLogs = async () => {
+    try {
+      setIsDataLoading(true);
+      
+      const user = localStorage.getItem('user_data');
+      const userId = user ? JSON.parse(user).id : null;
+      
+      if (!userId) {
+        throw new Error('Usuario no autenticado');
       }
-    };
+
+      const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al obtener bitácoras');
+      }
+      
+      const { data } = await response.json();
+      setLogs(data || []);
+    } catch (error) {
+      console.error('Error al obtener bitácoras:', error);
+      setError(error instanceof Error ? error.message : 'Error al cargar las bitácoras');
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
+
+  // Usar la función en el useEffect inicial
+  useEffect(() => {
     fetchUserLogs();
   }, [API_BASE_URL]);
 
@@ -73,6 +99,9 @@ export default function HomePage() {
         await stopRecording();
         const result = await sendAudioToBackend();
         console.log('Respuesta del servidor:', result);
+        
+        // Recargar la lista de bitácoras después de una subida exitosa
+        await fetchUserLogs();
       }
     } catch (error) {
       console.error('Error detallado:', error);
@@ -95,6 +124,12 @@ export default function HomePage() {
 
           {/* Main Content */}
           <div className="relative z-10 space-y-8">
+            {error && (
+              <Alert variant="destructive" className="max-w-md mx-auto">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <WeekdaySelector
               selectedDay={selectedDay}
               completedDays={logs.map((log: any) => new Date(log.created_at).getDay())}
