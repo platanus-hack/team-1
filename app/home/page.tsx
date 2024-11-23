@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { WeekdaySelector } from '@/components/WeekdaySelector';
-import { MicrophoneButton } from '@/components/MicrophoneButton';
-import { EntriesList } from '@/components/EntriesList';
 import { AudioPreview } from '@/components/AudioPreview';
+import { EntriesList } from '@/components/EntriesList';
 import { EntryModal } from '@/components/EntryModal';
+import { MicrophoneButton } from '@/components/MicrophoneButton';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { WeekdaySelector } from '@/components/WeekdaySelector';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from 'react';
 
 // Definir la interfaz para una entrada de bitácora
 interface BitacoraEntry {
@@ -25,7 +25,7 @@ interface BitacoraEntry {
 }
 
 // Actualizar la interfaz Entry existente o reemplazarla
-interface Entry extends BitacoraEntry {}
+interface Entry extends BitacoraEntry { }
 
 export default function HomePage() {
   const { isRecording, startRecording, stopRecording, sendAudioToBackend, audioUrl, volume } = useAudioRecorder();
@@ -43,21 +43,21 @@ export default function HomePage() {
   const fetchUserLogs = async () => {
     try {
       setIsDataLoading(true);
-      
+
       const user = localStorage.getItem('user_data');
       const userId = user ? JSON.parse(user).id : null;
-      
+
       if (!userId) {
         throw new Error('Usuario no autenticado');
       }
 
       const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Error al obtener bitácoras');
       }
-      
+
       const { data } = await response.json();
       setLogs(data || []);
     } catch (error) {
@@ -113,7 +113,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div>
       <div className="container mx-auto px-4 py-8">
         <div className="relative space-y-8">
           {/* Fondo expandible - Movido debajo del contenido principal */}
@@ -123,8 +123,8 @@ export default function HomePage() {
               bg-primary/20 
               backdrop-blur-sm 
               transition-all duration-700 
-              ${isRecording 
-                ? 'opacity-100 scale-100' 
+              ${isRecording
+                ? 'opacity-100 scale-100'
                 : 'opacity-0 scale-0 rounded-full'
               }
               origin-center
@@ -151,7 +151,7 @@ export default function HomePage() {
             {/* Contenedor del micrófono con animación de volumen más dramática */}
             <div className="flex flex-col items-center justify-center relative h-[400px] w-full">
               {/* Círculo base siempre visible */}
-              <div 
+              <div
                 className="absolute rounded-full bg-primary/5"
                 style={{
                   width: '120px',
@@ -161,10 +161,10 @@ export default function HomePage() {
                   top: '50%',
                 }}
               />
-              
+
               {/* Círculos de animación */}
               {[...Array(3)].map((_, i) => (
-                <div 
+                <div
                   key={i}
                   className="absolute rounded-full bg-primary/10 transition-all duration-75"
                   style={{
@@ -181,7 +181,7 @@ export default function HomePage() {
               ))}
 
               {/* Círculo principal que responde al volumen */}
-              <div 
+              <div
                 className="absolute rounded-full bg-primary/20 transition-all duration-75"
                 style={{
                   width: `${volume * 600 + 140}px`,
