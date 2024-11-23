@@ -105,7 +105,13 @@ export function EntryModal({ entry, onClose }: EntryModalProps) {
             </div>
 
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Creado el {new Date(entry.created_at).toLocaleString()}
+              Creado el {new Date(entry.created_at).toLocaleDateString('es-ES')} a las {
+                new Date(entry.created_at).toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })
+              }
             </div>
           </div>
         </div>

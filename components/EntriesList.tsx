@@ -40,38 +40,37 @@ export function EntriesList({ logs, selectedDay, onEntryClick }: EntriesListProp
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
+      <div className="text-sm text-gray-500 dark:text-gray-400 text-right">
+        {filteredLogs.length} {filteredLogs.length === 1 ? 'entrada' : 'entradas'} este día
+      </div>
+      
       {filteredLogs.map((log) => (
         <div
           key={log.uuid}
           onClick={() => onEntryClick(log)}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 cursor-pointer 
-                   hover:shadow-lg transition-shadow duration-200"
+          className={`rounded-lg shadow-md p-6 cursor-pointer 
+                   hover:shadow-lg transition-all duration-200
+                   ${log.emotion_state === 'Neutral' 
+                     ? 'bg-gradient-to-br from-amber-100 to-amber-50/70 dark:from-amber-900/40 dark:to-amber-950/30' 
+                     : log.emotion_state === 'Positive'
+                     ? 'bg-gradient-to-br from-emerald-100 to-emerald-50/70 dark:from-emerald-900/40 dark:to-emerald-950/30'
+                     : 'bg-gradient-to-br from-rose-100 to-rose-50/70 dark:from-rose-900/40 dark:to-rose-950/30'}`}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div 
-                className={`w-3 h-3 rounded-full ${
-                  log.emotion_state === 'Neutral' ? 'bg-yellow-400' :
-                  log.emotion_state === 'Positive' ? 'bg-green-400' : 'bg-red-400'
-                }`}
-              />
-              <h3 className="text-lg font-semibold">
-                {log.title !== 'Sin título' ? log.title : 'Entrada del día'}
-              </h3>
-            </div>
+            <h3 className="text-lg font-semibold">
+              {log.title !== 'Sin título' ? log.title : 'Entrada del día'}
+            </h3>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {new Date(log.created_at).toLocaleTimeString()}
+              {new Date(log.created_at).toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              })}
             </span>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-300 mb-3">
+          <p className="text-gray-600 dark:text-gray-300">
             {log.summary}
-          </p>
-
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {log.transcription.length > 100 
-              ? `${log.transcription.substring(0, 100)}...` 
-              : log.transcription}
           </p>
         </div>
       ))}
