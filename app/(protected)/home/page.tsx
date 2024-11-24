@@ -99,35 +99,46 @@ export default function HomePage() {
     setSelectedDay(dayIndex);
   };
 
+  const handleSendAudio = async () => {
+    try {
+      setIsProcessing(true);
+      const result = await sendAudioToBackend();
+      if (!result) return;
+
+      await fetchUserLogs();
+    } catch {
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   const handleToggleRecording = async () => {
     setError(null);
+
     try {
       if (!isRecording) {
         await startRecording();
       } else {
         setIsRecordingLoading(true);
         await stopRecording();
-        setIsProcessing(true);
-        const result = await sendAudioToBackend();
-
-        if (!result) return;
-
-        console.log('Respuesta del servidor:', result);
-
-        await fetchUserLogs();
-
-        if (result.follow_up_question) {
-          // TODO: Agregar la notificación al estado global
-        }
       }
     } catch (error) {
       console.error('Error detallado:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsRecordingLoading(false);
-      setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    const sendAudio = async () => {
+      if (audioUrl) {
+        await handleSendAudio();
+      }
+    };
+
+    sendAudio();
+  }, [audioUrl]);
 
   const handleTestNotification = () => {
     addNotification({

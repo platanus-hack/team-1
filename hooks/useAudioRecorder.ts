@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 interface AudioRecorderState {
   isRecording: boolean;
@@ -40,10 +40,10 @@ export function useAudioRecorder() {
       const updateVolume = () => {
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(dataArray);
-        
+
         const values = dataArray.reduce((a, b) => a + b) / dataArray.length;
         const normalizedVolume = Math.pow(values / 128, 1.5) * 2;
-        
+
         setState(prev => ({
           ...prev,
           volume: Math.min(normalizedVolume, 1)
@@ -119,7 +119,7 @@ export function useAudioRecorder() {
     if (!state.audioUrl) return;
 
     try {
-      const user = localStorage.getItem('user_data')  
+      const user = localStorage.getItem('user_data')
       const userId = user ? JSON.parse(user).id : null
 
       const response = await fetch(state.audioUrl);
@@ -135,7 +135,6 @@ export function useAudioRecorder() {
       }
 
       console.log('Enviando petición a:', `${API_BASE_URL}/api/bitacora`);
-      
       const uploadResponse = await fetch(`${API_BASE_URL}/api/bitacora`, {
         method: 'POST',
         body: formData,
