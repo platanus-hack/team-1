@@ -5,12 +5,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { BookOpen, SmilePlus, Meh, Frown } from "lucide-react";
 
+type EmotionState = 
+  | 'Felicidad'
+  | 'Tristeza'
+  | 'Ira'
+  | 'Miedo'
+  | 'Ansiedad'
+  | 'Amor'
+  | 'Sorpresa'
+  | 'Vergüenza'
+  | 'Esperanza'
+  | 'Orgullo';
+
 interface BitacoraEntry {
   uuid: string;
   title: string;
   transcription: string;
   analysis: string;
-  emotion_state: string;
+  emotion_state: EmotionState;
   follow_up_question: string;
   summary: string;
   created_at: string;
@@ -24,7 +36,7 @@ interface EntriesListProps {
   onEntryClick: (entry: BitacoraEntry) => void;
 }
 
-const EMOTION_COLORS = {
+const EMOTION_COLORS: Record<EmotionState, string> = {
   'Felicidad': '#FFD700',
   'Tristeza': '#4682B4',
   'Ira': '#FF4500',
