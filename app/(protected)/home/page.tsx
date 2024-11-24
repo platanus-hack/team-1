@@ -11,6 +11,7 @@ import { useNotifications } from "@/contexts/NotificationContext";
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // Definir la interfaz para una entrada de bitácora
 interface BitacoraEntry {
@@ -30,6 +31,7 @@ interface BitacoraEntry {
 interface Entry extends BitacoraEntry { }
 
 export default function HomePage() {
+  const router = useRouter();
   const { isRecording, startRecording, stopRecording, sendAudioToBackend, audioUrl, volume } = useAudioRecorder();
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
   const [isRecordingLoading, setIsRecordingLoading] = useState<boolean>(false);
@@ -52,9 +54,9 @@ export default function HomePage() {
 
 
       if (!userId) {
-        throw new Error('Usuario no autenticado');
+        router.push('/login');
+        throw new Error('Por favor inicia sesión');
       }
-
 
       const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
 
