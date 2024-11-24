@@ -57,6 +57,8 @@ export default function HomePage() {
         throw new Error('Usuario no autenticado');
       }
 
+      console.log(0, API_BASE_URL);
+      
       const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
 
       console.log(3, response);
