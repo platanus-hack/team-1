@@ -50,30 +50,23 @@ export default function HomePage() {
       const user = localStorage.getItem('user_data');
       const userId = user ? JSON.parse(user).id : null;
 
-      console.log(1, userId);
 
       if (!userId) {
-        console.log(2);
         throw new Error('Usuario no autenticado');
       }
 
-      console.log(0, API_BASE_URL);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
 
-      console.log(3, response);
 
       if (!response.ok) {
-        console.log(4);
 
         const errorData = await response.json();
         throw new Error(errorData.error || 'Error al obtener bitácoras');
       }
 
-      console.log(5);
 
       const { data } = await response.json();
-      console.log(6, data);
 
       setLogs(data || []);
     } catch (error) {
