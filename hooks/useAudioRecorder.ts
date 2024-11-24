@@ -128,6 +128,7 @@ export function useAudioRecorder() {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
       formData.append('user_id', userId.toString());
+      formData.append('transcription_service', 'whisper');
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
       if (!API_BASE_URL) {
