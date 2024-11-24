@@ -5,13 +5,15 @@ import { EntriesList } from '@/components/EntriesList';
 import { EntryModal } from '@/components/EntryModal';
 import { MicrophoneButton } from '@/components/MicrophoneButton';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { WeekdaySelector } from '@/components/WeekdaySelector';
-import { useNotifications } from "@/contexts/NotificationContext";
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 // Definir la interfaz para una entrada de bitácora
 interface BitacoraEntry {
@@ -31,7 +33,6 @@ interface BitacoraEntry {
 interface Entry extends BitacoraEntry { }
 
 export default function HomePage() {
-  const router = useRouter();
   const { isRecording, startRecording, stopRecording, sendAudioToBackend, audioUrl, volume } = useAudioRecorder();
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
   const [isRecordingLoading, setIsRecordingLoading] = useState<boolean>(false);
@@ -41,7 +42,6 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { addNotification } = useNotifications();
-  const [justRecorded, setJustRecorded] = useState(false);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -49,15 +49,16 @@ export default function HomePage() {
   const fetchUserLogs = async () => {
     try {
       setIsDataLoading(true);
+
       const user = localStorage.getItem('user_data');
       const userId = user ? JSON.parse(user).id : null;
 
       if (!userId) {
-        router.push('/login');
-        throw new Error('Por favor inicia sesión');
+        throw new Error('Usuario no autenticado');
       }
 
       const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Error al obtener bitácoras');
@@ -65,29 +66,6 @@ export default function HomePage() {
 
       const { data } = await response.json();
       setLogs(data || []);
-
-      // Agregamos logs para debug
-      if (justRecorded) {
-        console.log("Just recorded:", justRecorded);
-        console.log("Latest entry:", data[0]);
-        console.log("Follow up question:", data[0]?.follow_up_question);
-      }
-
-      // Solo mostrar la notificación si acabamos de grabar
-      if (justRecorded && data && data.length > 0) {
-        const latestEntry = data[0];
-        if (latestEntry.follow_up_question) {
-          console.log("Programando notificación...");
-          setTimeout(() => {
-            console.log("Mostrando notificación");
-            addNotification({
-              title: "Pregunta de seguimiento",
-              message: latestEntry.follow_up_question,
-            });
-          }, 4000);
-        }
-        setJustRecorded(false);
-      }
     } catch (error) {
       console.error('Error al obtener bitácoras:', error);
       setError(error instanceof Error ? error.message : 'Error al cargar las bitácoras');
@@ -118,75 +96,31 @@ export default function HomePage() {
     setSelectedDay(dayIndex);
   };
 
-  const handleSendAudio = async () => {
-    try {
-      setIsProcessing(true);
-      const result = await sendAudioToBackend();
-      if (!result) return;
-      
-      console.log("Audio enviado, esperando respuesta...");
-      // Primero hacemos el fetch
-      const user = localStorage.getItem('user_data');
-      const userId = user ? JSON.parse(user).id : null;
-      
-      if (!userId) return;
-      
-      const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
-      const { data } = await response.json();
-      
-      if (data && data.length > 0) {
-        const latestEntry = data[0];
-        console.log("Nueva entrada:", latestEntry);
-        
-        if (latestEntry.follow_up_question) {
-          // Programamos la notificación directamente aquí
-          setTimeout(() => {
-            console.log("Mostrando notificación de seguimiento");
-            addNotification({
-              title: "Pregunta de seguimiento",
-              message: latestEntry.follow_up_question,
-            });
-          }, 4000);
-        }
-      }
-      
-      // Actualizamos los logs después
-      setLogs(data || []);
-      
-    } catch (error) {
-      console.error("Error en handleSendAudio:", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  }
-
   const handleToggleRecording = async () => {
     setError(null);
-
     try {
       if (!isRecording) {
         await startRecording();
       } else {
         setIsRecordingLoading(true);
         await stopRecording();
+        setIsProcessing(true);
+        const result = await sendAudioToBackend();
+        console.log('Respuesta del servidor:', result);
+        await fetchUserLogs();
+        
+        if (result.follow_up_question) {
+          // TODO: Agregar la notificación al estado global
+        }
       }
     } catch (error) {
       console.error('Error detallado:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsRecordingLoading(false);
+      setIsProcessing(false);
     }
   };
-
-  useEffect(() => {
-    const sendAudio = async () => {
-      if (audioUrl) {
-        await handleSendAudio();
-      }
-    };
-
-    sendAudio();
-  }, [audioUrl]);
 
   const handleTestNotification = () => {
     addNotification({
@@ -323,9 +257,9 @@ export default function HomePage() {
         </div>
       )}
 
-      <Button
+      <Button 
         onClick={handleTestNotification}
-        className="fixed bottom-4 right-4 z-50 opacity-0"
+        className="fixed bottom-4 right-4 z-50"
         variant="default"
       >
         Agregar Notificación

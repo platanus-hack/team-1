@@ -24,6 +24,19 @@ interface EntriesListProps {
   onEntryClick: (entry: BitacoraEntry) => void;
 }
 
+const EMOTION_COLORS = {
+  'Felicidad': '#FFD700',
+  'Tristeza': '#4682B4',
+  'Ira': '#FF4500',
+  'Miedo': '#800080',
+  'Ansiedad': '#32CD32',
+  'Amor': '#FF69B4',
+  'Sorpresa': '#00FFFF',
+  'Vergüenza': '#CD853F',
+  'Esperanza': '#87CEEB',
+  'Orgullo': '#FFB6C1'
+} as const;
+
 export function EntriesList({ logs, selectedDay, onEntryClick }: EntriesListProps) {
   const filteredLogs = logs.filter(log => {
     const logDate = new Date(log.created_at);
@@ -49,12 +62,16 @@ export function EntriesList({ logs, selectedDay, onEntryClick }: EntriesListProp
           key={log.uuid}
           onClick={() => onEntryClick(log)}
           className={`rounded-lg shadow-md p-6 cursor-pointer 
-                   hover:shadow-lg transition-all duration-200
-                   ${log.emotion_state === 'Neutral' 
-                     ? 'bg-gradient-to-br from-amber-100 to-amber-50/70 dark:from-amber-900/40 dark:to-amber-950/30' 
-                     : log.emotion_state === 'Positive'
-                     ? 'bg-gradient-to-br from-emerald-100 to-emerald-50/70 dark:from-emerald-900/40 dark:to-emerald-950/30'
-                     : 'bg-gradient-to-br from-rose-100 to-rose-50/70 dark:from-rose-900/40 dark:to-rose-950/30'}`}
+                   hover:shadow-lg transition-all duration-200`}
+          style={{
+            background: `linear-gradient(to bottom right, ${EMOTION_COLORS[log.emotion_state] || ''}20, transparent)`,
+            borderLeft: `4px solid ${EMOTION_COLORS[log.emotion_state] || ''}`
+          }}
+                  //  ${log.emotion_state === 'Neutral' 
+                  //    ? 'bg-gradient-to-br from-amber-100 to-amber-50/70 dark:from-amber-900/40 dark:to-amber-950/30' 
+                  //    : log.emotion_state === 'Positive'
+                  //    ? 'bg-gradient-to-br from-emerald-100 to-emerald-50/70 dark:from-emerald-900/40 dark:to-emerald-950/30'
+                  //    : 'bg-gradient-to-br from-rose-100 to-rose-50/70 dark:from-rose-900/40 dark:to-rose-950/30'}`}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">
