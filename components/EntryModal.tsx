@@ -100,6 +100,11 @@ export function EntryModal({ entry, onClose }: EntryModalProps) {
             </div>
 
             <div>
+              <h3 className="text-lg font-semibold mb-2">Estado emocional:</h3>
+              <p className="text-gray-600 dark:text-gray-300">{entry.emotion_state}</p>
+            </div>
+
+            <div>
               <h3 className="text-lg font-semibold mb-2">Pregunta de seguimiento</h3>
               <p className="text-primary italic">{entry.follow_up_question}</p>
             </div>
