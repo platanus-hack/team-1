@@ -34,7 +34,7 @@ export default function Profile() {
       acc[emotion] = (acc[emotion] || 0) + 1;
       return acc;
     }, {});
-  
+
     // Define colors for each emotion
     const emotionColors = {
       "Alegría": "#FFD700",     // Gold
@@ -45,12 +45,12 @@ export default function Profile() {
       "Decepción": "#708090",   // Slate Gray
       "Neutral": "#A9A9A9"      // Dark Gray
     };
-  
+
     // Prepare data for pie chart
     const labels = Object.keys(emotionCounts);
     const data = Object.values(emotionCounts);
     const colors = labels.map(emotion => emotionColors[emotion] || "#999999");
-  
+
     return {
       labels,
       datasets: [{
@@ -167,13 +167,13 @@ export default function Profile() {
       {/* Perfil del usuario */}
       <div className="flex flex-col items-center bg-white shadow-md rounded-lg p-6 w-full max-w-md">
         <Image
-          src={"/profile-avatar.jpg"}
+          src={"/profile-avatar.png"}
           alt="Avatar"
           width={80}
           height={80}
           className="rounded-full border border-gray-300"
         />
-        <h2 className="text-xl font-bold text-gray-800">{userEmail || "Username"}</h2>
+        <h2 className="text-xl font-bold text-gray-800 mt-3">{userEmail || "Username"}</h2>
       </div>
 
       {/* Gráficos */}
