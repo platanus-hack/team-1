@@ -1,6 +1,7 @@
 'use client';
 
 import { User } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { NotificationsMenu } from './NotificationsMenu';
 
@@ -10,12 +11,18 @@ export default function Navbar() {
   return (
     <nav className="w-full bg-transparent text-black">
       <div className="container mx-auto px-4 flex justify-between items-center h-14">
-        <h1
-          className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+        <div
+          className="cursor-pointer"
           onClick={() => router.push('/home')}
         >
-          Get Human Talking
-        </h1>
+          <Image
+            src="/logo.jpg"
+            alt="Logo"
+            width={100}
+            height={100}
+            className="object-contain"
+          />
+        </div>
 
         <div className="flex items-center gap-4">
           <NotificationsMenu />

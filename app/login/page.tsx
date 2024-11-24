@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/components/auth/login-form";
 import { RegisterForm } from "@/components/auth/register-form";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from 'next/image';
+import { useState } from 'react';
+
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,13 +14,22 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
       <Card className="w-full max-w-md">
+        <div className="flex justify-center pt-8">
+          <Image
+            src="/logo.jpg"
+            alt="Logo"
+            width={150}
+            height={150}
+            className="object-contain"
+          />
+        </div>
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             {isLogin ? 'Bienvenido de nuevo' : 'Crear cuenta'}
           </CardTitle>
           <CardDescription className="text-center">
-            {isLogin 
-              ? 'Inicia sesión para continuar' 
+            {isLogin
+              ? 'Inicia sesión para continuar'
               : 'Registra una nueva cuenta'}
           </CardDescription>
         </CardHeader>
@@ -31,8 +42,8 @@ export default function Login() {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm"
           >
-            {isLogin 
-              ? '¿No tienes una cuenta? Regístrate' 
+            {isLogin
+              ? '¿No tienes una cuenta? Regístrate'
               : '¿Ya tienes una cuenta? Inicia sesión'}
           </Button>
         </CardFooter>
