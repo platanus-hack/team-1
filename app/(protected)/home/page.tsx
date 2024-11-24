@@ -109,9 +109,9 @@ export default function HomePage() {
         console.log('Respuesta del servidor:', result);
         await fetchUserLogs();
         
-        if (result.follow_up_question) {
+        // if (result.follow_up_question) {
           // TODO: Agregar la notificación al estado global
-        }
+        // }
       }
     } catch (error) {
       console.error('Error detallado:', error);
