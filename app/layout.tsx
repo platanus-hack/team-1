@@ -1,10 +1,13 @@
 'use client';
-import './globals.css';
-import { Inter } from 'next/font/google';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useEffect } from 'react'
-import { Toaster } from 'sonner';
+
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Inter } from 'next/font/google';
+import Head from 'next/head';
+import { useEffect } from 'react';
+import { Toaster } from 'sonner';
+import './globals.css';
+
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -13,26 +16,29 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClientComponentClient()
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session)
-    })
+      console.log('Auth state changed:', event, session);
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <body className={inter.className}>
         <NotificationProvider>
           {children}
-          <Toaster 
-            richColors 
-            position="top-center" 
+          <Toaster
+            richColors
+            position="top-center"
             expand={true}
             toastOptions={{
               style: {
