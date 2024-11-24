@@ -5,15 +5,12 @@ import { EntriesList } from '@/components/EntriesList';
 import { EntryModal } from '@/components/EntryModal';
 import { MicrophoneButton } from '@/components/MicrophoneButton';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { WeekdaySelector } from '@/components/WeekdaySelector';
+import { useNotifications } from "@/contexts/NotificationContext";
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button";
-import { useNotifications } from "@/contexts/NotificationContext";
 
 // Definir la interfaz para una entrada de bitácora
 interface BitacoraEntry {
@@ -53,18 +50,29 @@ export default function HomePage() {
       const user = localStorage.getItem('user_data');
       const userId = user ? JSON.parse(user).id : null;
 
+      console.log(1, userId);
+
       if (!userId) {
+        console.log(2);
         throw new Error('Usuario no autenticado');
       }
 
       const response = await fetch(`${API_BASE_URL}/api/bitacora?user_id=${userId}`);
 
+      console.log(3, response);
+
       if (!response.ok) {
+        console.log(4);
+
         const errorData = await response.json();
         throw new Error(errorData.error || 'Error al obtener bitácoras');
       }
 
+      console.log(5);
+
       const { data } = await response.json();
+      console.log(6, data);
+
       setLogs(data || []);
     } catch (error) {
       console.error('Error al obtener bitácoras:', error);
@@ -108,7 +116,7 @@ export default function HomePage() {
         const result = await sendAudioToBackend();
         console.log('Respuesta del servidor:', result);
         await fetchUserLogs();
-        
+
         if (result.follow_up_question) {
           // TODO: Agregar la notificación al estado global
         }
@@ -257,7 +265,7 @@ export default function HomePage() {
         </div>
       )}
 
-      <Button 
+      <Button
         onClick={handleTestNotification}
         className="fixed bottom-4 right-4 z-50"
         variant="default"
