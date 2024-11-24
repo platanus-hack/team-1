@@ -1,0 +1,11 @@
+_pycache_/
+*.pyc
+.idea/
+.venv*/
+venv*/
+dist/
+.coverage*
+htmlcov/
+.tox/
+docs/_build/
+.env
