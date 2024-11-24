@@ -163,15 +163,15 @@ export default function Profile() {
 
 
   return (
-    <div className="flex flex-col items-center gap-8 p-8 bg-gray-100 min-h-screen">
+    <div className="flex flex-col items-center gap-8 md:px-32 p-8 bg-gray-100 min-h-screen">
       {/* Perfil del usuario */}
-      <div className="flex flex-col items-center bg-white shadow-md rounded-lg p-6 w-full max-w-md">
+      <div className="flex md:flex-row flex-wrap overflow-hidden justify-center items-center gap-8 bg-white shadow-md rounded-lg p-6 w-full ">
         <Image
-          src={"/profile-avatar.png"}
+          src={"/avatar.png"}
           alt="Avatar"
           width={80}
           height={80}
-          className="rounded-full border border-gray-300"
+          className="rounded-full"
         />
         <h2 className="text-xl font-bold text-gray-800 mt-3">{userEmail || "Username"}</h2>
       </div>
@@ -179,25 +179,35 @@ export default function Profile() {
       {/* Gráficos */}
       <div className="flex flex-col md:flex-row justify-center items-center gap-8 w-full">
         {/* Card para gráfico de torta */}
-        <div className="bg-white shadow-md rounded-lg p-7 w-80 h-80 flex justify-center items-center border border-gray-200">
+        <div className="bg-white shadow-md rounded-lg p-4 md:p-7 w-full min-h-[320px] flex justify-center items-center border border-gray-200">
           <div className="w-full h-full flex justify-center items-center">
             {isLoading ? (
               <div className="flex flex-col items-center gap-4">
                 <LoaderCircle className={`animate-spin`} />
                 <p>Loading data...</p>
               </div>
+            ) : pieData.datasets[0].data.length === 0 ? (
+              <div className="flex flex-col justify-center items-center gap-2 text-gray-500">
+                <p className="text-lg text-center font-medium">No hay datos disponibles</p>
+                <p className="text-sm">Aún no hay registros</p>
+              </div>
             ) : (
-              <Pie data={pieData} />
+              <div className="w-full flex justify-center max-w-xl max-h-[300px]">
+                <Pie data={pieData} options={{ 
+                  responsive: true,
+                  maintainAspectRatio: true
+                }} />
+              </div>
             )}
           </div>
         </div>
 
         {/* Card para gráfico de barras */}
-        <div className="bg-white shadow-md rounded-lg p-7 w-80 h-80 flex justify-center items-center border border-gray-200">
+        {/* <div className="bg-white shadow-md rounded-lg p-7 w-80 h-80 flex justify-center items-center border border-gray-200">
           <div className="w-full h-full flex justify-center items-center">
             <Bar data={barData} options={barOptions} />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Card para historial de conversaciones */}
@@ -209,8 +219,8 @@ export default function Profile() {
           <GitHubCalendar
             username="satelerd"
             colorScheme="light"
-            fontSize={18}
-            blockSize={15}
+            fontSize={16}
+            blockSize={10}
             hideTotalCount
             theme={theme}
             labels={labels}
