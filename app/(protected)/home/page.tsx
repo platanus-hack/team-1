@@ -109,7 +109,11 @@ export default function HomePage() {
         await stopRecording();
         setIsProcessing(true);
         const result = await sendAudioToBackend();
+
+        if (!result) return;
+
         console.log('Respuesta del servidor:', result);
+
         await fetchUserLogs();
 
         if (result.follow_up_question) {
