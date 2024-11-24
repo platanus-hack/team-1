@@ -16,7 +16,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <div className="flex justify-center pt-8">
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Logo"
             width={150}
             height={150}

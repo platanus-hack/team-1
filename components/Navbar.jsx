@@ -16,7 +16,7 @@ export default function Navbar() {
           onClick={() => router.push('/home')}
         >
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Logo"
             width={100}
             height={100}
