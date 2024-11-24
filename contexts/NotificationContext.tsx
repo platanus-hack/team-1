@@ -1,44 +1,54 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface Notification {
   id: string;
   title: string;
   message: string;
   timestamp: string;
+  read: boolean;
 }
 
 interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
-  clearNotifications: () => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  markAllAsRead: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export function NotificationProvider({ children }: { children: React.ReactNode }) {
+export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
+  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification = {
       ...notification,
       id: Date.now().toString(),
       timestamp: new Date().toLocaleString(),
+      read: false,
     };
     setNotifications(prev => [newNotification, ...prev]);
   };
 
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
+  const markAllAsRead = useCallback(() => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: true }))
+    );
+  }, []);
 
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification, clearNotifications }}>
+    <NotificationContext.Provider 
+      value={{ 
+        notifications, 
+        addNotification, 
+        markAllAsRead 
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );
-}
+};
 
 export function useNotifications() {
   const context = useContext(NotificationContext);

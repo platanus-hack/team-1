@@ -9,15 +9,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-export function NotificationsMenu() {
+interface NotificationsMenuProps {
+  onOpen?: () => void;
+}
+
+export function NotificationsMenu({ onOpen, ...props }: NotificationsMenuProps) {
   const { notifications } = useNotifications();
-  const hasNotifications = notifications.length > 0;
+  const hasUnreadNotifications = notifications.some(notification => !notification.read);
 
   return (
-    <Popover>
+    <Popover onOpenChange={(open) => {
+      if (open && onOpen) {
+        onOpen();
+      }
+    }}>
       <PopoverTrigger className="relative h-8 w-8 flex items-center justify-center">
         <Bell size={20} />
-        {hasNotifications && (
+        {hasUnreadNotifications && (
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           </span>
@@ -30,7 +38,9 @@ export function NotificationsMenu() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="p-3 hover:bg-accent rounded-md transition-colors"
+                  className={`p-3 hover:bg-accent rounded-md transition-colors ${
+                    !notification.read ? 'bg-accent/50' : ''
+                  }`}
                 >
                   <div className="font-medium">{notification.title}</div>
                   <div className="text-sm text-muted-foreground">

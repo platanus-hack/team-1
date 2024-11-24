@@ -4,9 +4,11 @@ import { User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { NotificationsMenu } from './NotificationsMenu';
+import { useNotifications } from "@/contexts/NotificationContext";
 
 export default function Navbar() {
   const router = useRouter();
+  const { markAllAsRead } = useNotifications();
 
   return (
     <nav className="w-full bg-transparent text-black">
@@ -25,7 +27,11 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <NotificationsMenu />
+          <NotificationsMenu 
+            onOpen={() => {
+              markAllAsRead();
+            }}
+          />
           <div
             className="relative w-8 h-8 flex items-center justify-center cursor-pointer"
             onClick={() => router.push('/profile')}
