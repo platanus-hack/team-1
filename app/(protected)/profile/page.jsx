@@ -10,6 +10,18 @@ import GitHubCalendar from 'react-github-calendar';
 // Registro de componentes de Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
+const EMOTION_COLORS = {
+  'Felicidad': '#FFD700',
+  'Tristeza': '#4682B4',
+  'Ira': '#FF4500',
+  'Miedo': '#800080',
+  'Ansiedad': '#32CD32',
+  'Amor': '#FF69B4',
+  'Sorpresa': '#00FFFF',
+  'Vergüenza': '#CD853F',
+  'Esperanza': '#87CEEB',
+  'Orgullo': '#FFB6C1'
+};
 
 export default function Profile() {
   const [userData, setUserData] = useState({});
@@ -35,21 +47,10 @@ export default function Profile() {
       return acc;
     }, {});
 
-    // Define colors for each emotion
-    const emotionColors = {
-      "Alegría": "#FFD700",     // Gold
-      "Tristeza": "#4682B4",    // Steel Blue
-      "Enojo": "#FF4500",       // Red Orange
-      "Miedo": "#800080",       // Purple
-      "Sorpresa": "#32CD32",    // Lime Green
-      "Decepción": "#708090",   // Slate Gray
-      "Neutral": "#A9A9A9"      // Dark Gray
-    };
-
     // Prepare data for pie chart
     const labels = Object.keys(emotionCounts);
     const data = Object.values(emotionCounts);
-    const colors = labels.map(emotion => emotionColors[emotion] || "#999999");
+    const colors = labels.map(emotion => EMOTION_COLORS[emotion] || "#999999");
 
     return {
       labels,
